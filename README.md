@@ -1,4 +1,4 @@
-# NomadCoin
+# ByteCoin
 
 A project making a fake cryptocurrency
 
