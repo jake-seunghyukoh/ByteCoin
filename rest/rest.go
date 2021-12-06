@@ -3,19 +3,20 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/ohshyuk5/ByteCoin/blockchain"
 	"github.com/ohshyuk5/ByteCoin/utils"
 )
 
-const BaseURL string = "http://localhost"
-const Port string = ":4000"
+const baseURL string = "http://localhost"
+const port string = ":4000"
 
 type URL string
 
 func (u URL) MarshalText() ([]byte, error) {
-	url := fmt.Sprintf("%s%s%s", BaseURL, Port, u)
+	url := fmt.Sprintf("%s%s%s", baseURL, port, u)
 	return []byte(url), nil
 }
 
@@ -30,12 +31,12 @@ type AddBlockBody struct {
 	Message string
 }
 
-func Documentation(rw http.ResponseWriter, r *http.Request) {
+func documentation(rw http.ResponseWriter, r *http.Request) {
 	data := []URLDescription{
 		{
 			URL:         URL("/"),
 			Method:      "GET",
-			Description: "See Documentation",
+			Description: "See documentation",
 		},
 		{
 			URL:         URL("/blocks"),
@@ -58,7 +59,7 @@ func Documentation(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(data)
 }
 
-func Blocks(rw http.ResponseWriter, r *http.Request) {
+func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		rw.Header().Add("Content-Type", "application/json")
@@ -71,4 +72,11 @@ func Blocks(rw http.ResponseWriter, r *http.Request) {
 		blockchain.GetBlockChain().AddBlock(addBlockBody.Message)
 		rw.WriteHeader(http.StatusCreated)
 	}
+}
+
+func Start() {
+	http.HandleFunc("/", documentation)
+	http.HandleFunc("/blocks", blocks)
+	fmt.Printf("Listening on %s%s\n", baseURL, port)
+	log.Fatal(http.ListenAndServe(port, nil))
 }
