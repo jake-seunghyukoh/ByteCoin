@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/ohshyuk5/ByteCoin/blockchain"
 	"github.com/ohshyuk5/ByteCoin/utils"
 )
@@ -51,7 +53,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See all Blocks",
 		},
 		{
-			URL:         url("/blocks/{id}"),
+			URL:         url("/blocks/{height}"),
 			Method:      "GET",
 			Description: "See a Block",
 		},
@@ -75,13 +77,24 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func block(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	heightStr := vars["height"]
+	heightInt, err := strconv.Atoi(heightStr)
+	utils.HandleErr(err)
+
+	block := blockchain.GetBlockChain().GetBlock(heightInt)
+	json.NewEncoder(rw).Encode(block)
+}
+
 func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
 
-	handler := http.NewServeMux()
-	handler.HandleFunc("/", documentation)
-	handler.HandleFunc("/blocks", blocks)
+	router := mux.NewRouter()
+	router.HandleFunc("/", documentation).Methods("GET")
+	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
+	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
 
 	fmt.Printf("Listening on %s%s\n", baseURL, port)
-	log.Fatal(http.ListenAndServe(port, handler))
+	log.Fatal(http.ListenAndServe(port, router))
 }
