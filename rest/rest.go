@@ -11,7 +11,8 @@ import (
 )
 
 const baseURL string = "http://localhost"
-const port string = ":4000"
+
+var port string = ":4000"
 
 type url string
 
@@ -74,9 +75,13 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Start() {
-	http.HandleFunc("/", documentation)
-	http.HandleFunc("/blocks", blocks)
+func Start(aPort int) {
+	port = fmt.Sprintf(":%d", aPort)
+
+	handler := http.NewServeMux()
+	handler.HandleFunc("/", documentation)
+	handler.HandleFunc("/blocks", blocks)
+
 	fmt.Printf("Listening on %s%s\n", baseURL, port)
-	log.Fatal(http.ListenAndServe(port, nil))
+	log.Fatal(http.ListenAndServe(port, handler))
 }

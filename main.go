@@ -1,7 +1,11 @@
 package main
 
-import "github.com/ohshyuk5/ByteCoin/rest"
+import (
+	"github.com/ohshyuk5/ByteCoin/explorer"
+	"github.com/ohshyuk5/ByteCoin/rest"
+)
 
 func main() {
-	rest.Start()
+	go explorer.Start(3000)
+	rest.Start(4000)
 }
