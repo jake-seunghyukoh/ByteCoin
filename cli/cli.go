@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/ohshyuk5/ByteCoin/explorer"
 	"github.com/ohshyuk5/ByteCoin/rest"
@@ -17,7 +18,7 @@ func usage() {
 	fmt.Println("-port:		Set port of the server")
 	fmt.Println("-mode:		Choose between 'html' and 'rest'")
 	fmt.Println()
-	os.Exit(0)
+	runtime.Goexit()
 }
 
 func Start() {
