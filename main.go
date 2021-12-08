@@ -1,9 +1,7 @@
 package main
 
-import (
-	"github.com/ohshyuk5/ByteCoin/rest"
-)
+import "github.com/ohshyuk5/ByteCoin/cli"
 
 func main() {
-	rest.Start(4000)
+	cli.Start()
 }
