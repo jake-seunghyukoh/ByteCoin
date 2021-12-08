@@ -3,13 +3,11 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"net/http"
-	"strconv"
-
 	"github.com/gorilla/mux"
 	"github.com/ohshyuk5/ByteCoin/blockchain"
 	"github.com/ohshyuk5/ByteCoin/utils"
+	"log"
+	"net/http"
 )
 
 const baseURL string = "http://localhost"
@@ -38,7 +36,7 @@ type errorResponse struct {
 	ErrorMessage string `json:"errorMessage"`
 }
 
-func documentation(rw http.ResponseWriter, r *http.Request) {
+func documentation(rw http.ResponseWriter, _ *http.Request) {
 	data := []urlDescription{
 		{
 			URL:         url("/"),
@@ -57,42 +55,37 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See all Blocks",
 		},
 		{
-			URL:         url("/blocks/{height}"),
+			URL:         url("/blocks/{hash}"),
 			Method:      "GET",
 			Description: "See a Block",
 		},
 	}
-	json.NewEncoder(rw).Encode(data)
+	utils.HandleErr(json.NewEncoder(rw).Encode(data))
 }
 
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		json.NewEncoder(rw).Encode(blockchain.GetBlockChain().AllBlocks())
+		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks()))
 	case "POST":
 		var body addBlockBody
-		err := json.NewDecoder(r.Body).Decode(&body)
-		utils.HandleErr(err)
-
-		blockchain.GetBlockChain().AddBlock(body.Message)
+		utils.HandleErr(json.NewDecoder(r.Body).Decode(&body))
+		blockchain.BlockChain().AddBlock(body.Message)
 		rw.WriteHeader(http.StatusCreated)
 	}
 }
 
 func block(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	heightStr := vars["height"]
-	heightInt, err := strconv.Atoi(heightStr)
-	utils.HandleErr(err)
-
-	block, err := blockchain.GetBlockChain().GetBlock(heightInt)
+	hash := vars["hash"]
+	block, err := blockchain.FindBlock(hash)
 	encoder := json.NewEncoder(rw)
 
 	if err == blockchain.ErrNotFound {
 		rw.WriteHeader(http.StatusNotFound)
-		encoder.Encode(errorResponse{ErrorMessage: fmt.Sprint(err)})
+		utils.HandleErr(encoder.Encode(errorResponse{ErrorMessage: fmt.Sprint(err)}))
 	} else {
-		encoder.Encode(block)
+		utils.HandleErr(encoder.Encode(block))
 	}
 }
 
@@ -112,7 +105,7 @@ func Start(aPort int) {
 
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
-	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
+	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 
 	fmt.Printf("Listening on %s%s\n", baseURL, port)
 	log.Fatal(http.ListenAndServe(port, router))

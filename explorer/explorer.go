@@ -2,6 +2,7 @@ package explorer
 
 import (
 	"fmt"
+	"github.com/ohshyuk5/ByteCoin/utils"
 	"log"
 	"net/http"
 	"text/template"
@@ -22,19 +23,22 @@ type homeData struct {
 	Blocks    []*blockchain.Block
 }
 
-func home(rw http.ResponseWriter, r *http.Request) {
-	data := homeData{PageTitle: "Home", Blocks: blockchain.GetBlockChain().AllBlocks()}
-	templates.ExecuteTemplate(rw, "home", data)
+func home(rw http.ResponseWriter, _ *http.Request) {
+	data := homeData{PageTitle: "Home", Blocks: blockchain.BlockChain().Blocks()}
+	err := templates.ExecuteTemplate(rw, "home", data)
+	utils.HandleErr(err)
 }
 
 func add(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		templates.ExecuteTemplate(rw, "add", nil)
+		err := templates.ExecuteTemplate(rw, "add", nil)
+		utils.HandleErr(err)
 	case "POST":
-		r.ParseForm()
+		err := r.ParseForm()
+		utils.HandleErr(err)
 		data := r.Form.Get("blockData")
-		blockchain.GetBlockChain().AddBlock(data)
+		blockchain.BlockChain().AddBlock(data)
 		http.Redirect(rw, r, "/", http.StatusPermanentRedirect)
 	}
 }
