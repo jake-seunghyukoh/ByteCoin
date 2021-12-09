@@ -22,3 +22,6 @@ go.work
 
 # database file
 *.db
+
+# JetBrain stuffs
+.idea/

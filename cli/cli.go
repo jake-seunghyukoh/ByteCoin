@@ -22,7 +22,6 @@ func usage() {
 }
 
 func Start() {
-
 	if len(os.Args) == 1 {
 		usage()
 	}
