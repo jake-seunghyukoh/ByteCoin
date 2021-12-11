@@ -2,10 +2,11 @@ package explorer
 
 import (
 	"fmt"
-	"github.com/ohshyuk5/ByteCoin/utils"
 	"log"
 	"net/http"
 	"text/template"
+
+	"github.com/ohshyuk5/ByteCoin/utils"
 
 	"github.com/ohshyuk5/ByteCoin/blockchain"
 )
@@ -24,7 +25,7 @@ type homeData struct {
 }
 
 func home(rw http.ResponseWriter, _ *http.Request) {
-	data := homeData{PageTitle: "Home", Blocks: blockchain.BlockChain().Blocks()}
+	data := homeData{PageTitle: "Home", Blocks: blockchain.Blocks(blockchain.BlockChain())}
 	err := templates.ExecuteTemplate(rw, "home", data)
 	utils.HandleErr(err)
 }

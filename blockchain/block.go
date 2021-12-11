@@ -2,10 +2,11 @@ package blockchain
 
 import (
 	"errors"
-	"github.com/ohshyuk5/ByteCoin/db"
-	"github.com/ohshyuk5/ByteCoin/utils"
 	"strings"
 	"time"
+
+	"github.com/ohshyuk5/ByteCoin/db"
+	"github.com/ohshyuk5/ByteCoin/utils"
 )
 
 type Block struct {
@@ -52,12 +53,12 @@ func (b *Block) mine() {
 	}
 }
 
-func createBlock() *Block {
+func createBlock(prevHash string, height, diff int) *Block {
 	block := Block{
 		Hash:       "",
-		PrevHash:   b.NewestHash,
-		Height:     b.Height + 1,
-		Difficulty: BlockChain().difficulty(),
+		PrevHash:   prevHash,
+		Height:     height,
+		Difficulty: diff,
 		Nonce:      0,
 		Timestamp:  0,
 	}

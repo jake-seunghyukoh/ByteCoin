@@ -41,6 +41,4 @@ func Start() {
 	default:
 		usage()
 	}
-
-	fmt.Println(*port, *mode)
 }

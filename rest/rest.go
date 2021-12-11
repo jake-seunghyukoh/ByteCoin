@@ -3,11 +3,12 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/ohshyuk5/ByteCoin/blockchain"
 	"github.com/ohshyuk5/ByteCoin/utils"
-	"log"
-	"net/http"
 )
 
 const baseURL string = "http://localhost"
@@ -81,7 +82,7 @@ func documentation(rw http.ResponseWriter, _ *http.Request) {
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks()))
+		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.BlockChain())))
 	case "POST":
 		blockchain.BlockChain().AddBlock()
 		rw.WriteHeader(http.StatusCreated)
@@ -120,7 +121,7 @@ func balance(rw http.ResponseWriter, r *http.Request) {
 	total := r.URL.Query().Get("total")
 	switch total {
 	case "true":
-		balance := blockchain.BlockChain().BalanceByAddress(address)
+		balance := blockchain.BalanceByAddress(blockchain.BlockChain(), address)
 		utils.HandleErr(
 			json.NewEncoder(rw).Encode(balanceResponse{
 				Address: address,
@@ -130,7 +131,7 @@ func balance(rw http.ResponseWriter, r *http.Request) {
 	default:
 		utils.HandleErr(
 			json.NewEncoder(rw).Encode(
-				blockchain.BlockChain().TxOutsByAddress(address),
+				blockchain.UTxOutsByAddress(blockchain.BlockChain(), address),
 			),
 		)
 	}

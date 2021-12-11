@@ -2,8 +2,9 @@ package blockchain
 
 import (
 	"errors"
-	"github.com/ohshyuk5/ByteCoin/utils"
 	"time"
+
+	"github.com/ohshyuk5/ByteCoin/utils"
 )
 
 const (
@@ -17,19 +18,20 @@ type mempool struct {
 }
 
 type Tx struct {
-	Id        string   `json:"id"`
+	ID        string   `json:"id"`
 	Timestamp int      `json:"timestamp"`
 	TxIns     []*TxIn  `json:"txIns"`
 	TxOuts    []*TxOut `json:"txOuts"`
 }
 
 func (t *Tx) getId() {
-	t.Id = utils.Hash(t)
+	t.ID = utils.Hash(t)
 }
 
 type TxIn struct {
-	Owner  string `json:"owner"`
-	Amount int    `json:"amount"`
+	TxID  string `json:"txID"`
+	Index int    `json:"index"`
+	Owner string `json:"owner"`
 }
 
 type TxOut struct {
@@ -37,15 +39,36 @@ type TxOut struct {
 	Amount int    `json:"amount"`
 }
 
+type UTxOut struct {
+	TxID   string `json:"txID"`
+	Index  int    `json:"index"`
+	Amount int    `json:"amount"`
+}
+
+func isOnMempool(uTxOut *UTxOut) bool {
+	exists := false
+
+Outer:
+	for _, tx := range Mempool.Txs {
+		for _, input := range tx.TxIns {
+			if input.TxID == uTxOut.TxID && input.Index == uTxOut.Index {
+				exists = true
+				break Outer
+			}
+		}
+	}
+	return exists
+}
+
 func makeCoinbaseTx(address string) *Tx {
 	txIn := []*TxIn{
-		{Owner: "COINBASE", Amount: minerReward},
+		{TxID: "", Index: -1, Owner: "COINBASE"},
 	}
 	txOut := []*TxOut{
 		{Owner: address, Amount: minerReward},
 	}
 	tx := Tx{
-		Id:        "",
+		ID:        "",
 		Timestamp: int(time.Now().Unix()),
 		TxIns:     txIn,
 		TxOuts:    txOut,
@@ -56,34 +79,39 @@ func makeCoinbaseTx(address string) *Tx {
 }
 
 func makeTx(from, to string, amount int) (*Tx, error) {
-	balance := BlockChain().BalanceByAddress(from)
-	if balance < amount {
+	if BalanceByAddress(BlockChain(), from) < amount {
 		return nil, errors.New("not enough money")
 	}
-	var txIns []*TxIn
 	var txOuts []*TxOut
+	var txIns []*TxIn
 
 	total := 0
-	oldTxOuts := BlockChain().TxOutsByAddress(from)
-	for _, txOut := range oldTxOuts {
-		if total > amount {
+	uTxOuts := UTxOutsByAddress(BlockChain(), from)
+
+	for _, uTxOut := range uTxOuts {
+		if total >= amount {
 			break
 		}
-		txIn := &TxIn{txOut.Owner, txOut.Amount}
+
+		txIn := &TxIn{
+			TxID:  uTxOut.TxID,
+			Index: uTxOut.Index,
+			Owner: from,
+		}
 		txIns = append(txIns, txIn)
-		total += txIn.Amount
+		total += uTxOut.Amount
 	}
 
-	change := total - amount
-	if change != 0 {
-		changeTxOut := &TxOut{from, change}
+	if change := total - amount; change != 0 {
+		changeTxOut := &TxOut{Owner: from, Amount: change}
 		txOuts = append(txOuts, changeTxOut)
 	}
 
-	txOut := &TxOut{to, amount}
+	txOut := &TxOut{Owner: to, Amount: amount}
 	txOuts = append(txOuts, txOut)
+
 	tx := &Tx{
-		Id:        "",
+		ID:        "",
 		Timestamp: int(time.Now().Unix()),
 		TxIns:     txIns,
 		TxOuts:    txOuts,
