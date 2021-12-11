@@ -9,13 +9,13 @@ import (
 )
 
 type Block struct {
-	Data       string `json:"data"`
-	Hash       string `json:"hash"`
-	PrevHash   string `json:"prevHash,omitempty"`
-	Height     int    `json:"height"`
-	Difficulty int    `json:"difficulty"`
-	Nonce      int    `json:"nonce"`
-	Timestamp  int    `json:"timestamp"`
+	Hash         string `json:"hash"`
+	PrevHash     string `json:"prevHash,omitempty"`
+	Height       int    `json:"height"`
+	Difficulty   int    `json:"difficulty"`
+	Nonce        int    `json:"nonce"`
+	Timestamp    int    `json:"timestamp"`
+	Transactions []*Tx  `json:"transactions"`
 }
 
 var ErrNotFound = errors.New("block not found")
@@ -52,9 +52,8 @@ func (b *Block) mine() {
 	}
 }
 
-func createBlock(data string) *Block {
+func createBlock() *Block {
 	block := Block{
-		Data:       data,
 		Hash:       "",
 		PrevHash:   b.NewestHash,
 		Height:     b.Height + 1,
@@ -63,6 +62,7 @@ func createBlock(data string) *Block {
 		Timestamp:  0,
 	}
 	block.mine()
+	block.Transactions = Mempool.TxToConfirm()
 	block.persist()
 	return &block
 }
