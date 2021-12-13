@@ -1,11 +1,9 @@
 package main
 
 import (
-	"github.com/ohshyuk5/ByteCoin/cli"
-	"github.com/ohshyuk5/ByteCoin/db"
+	"github.com/ohshyuk5/ByteCoin/wallet"
 )
 
 func main() {
-	defer db.Close()
-	cli.Start()
+	wallet.Start()
 }
