@@ -10,10 +10,13 @@ POST http://localhost:4000/blocks
 http://localhost:4000/blocks/000368b17f4a4b47fa3832955ecb2116efb212f1b538b10f55cec781484ceecd
 
 ###
-http://localhost:4000/balance/me?total=true
+http://localhost:4000/balance/30f65eace1e3fe105a82b25816c88c9106303760d1ae03ac03495b77c008a76c060433c1a5cd807c71bf28cd4e97897a796a74cd922a24c487958aeee8c49764?total=true
 
 ###
-http://localhost:4000/balance/me
+http://localhost:4000/balance/30f65eace1e3fe105a82b25816c88c9106303760d1ae03ac03495b77c008a76c060433c1a5cd807c71bf28cd4e97897a796a74cd922a24c487958aeee8c49764
+
+###
+http://localhost:4000/wallet
 
 ###
 http://localhost:4000/mempool
@@ -23,5 +26,5 @@ POST http://localhost:4000/transactions
 
 {
   "to":"nico",
-  "amount":40
+  "amount":100
 }

@@ -55,6 +55,24 @@ func Blocks(b *blockChain) []*Block {
 	return blocks
 }
 
+func Transactions(b *blockChain) []*Tx {
+	var txs []*Tx
+	for _, block := range Blocks(b) {
+		txs = append(txs, block.Transactions...)
+	}
+	return txs
+}
+
+func FindTransaction(b *blockChain, targetID string) *Tx {
+	txs := Transactions(b)
+	for _, tx := range txs {
+		if tx.ID == targetID {
+			return tx
+		}
+	}
+	return nil
+}
+
 func recalculateDifficulty(b *blockChain) int {
 	allBlocks := Blocks(b)
 
@@ -90,12 +108,15 @@ func UTxOutsByAddress(b *blockChain, address string) []*UTxOut {
 	for _, block := range Blocks(b) {
 		for _, tx := range block.Transactions {
 			for _, input := range tx.TxIns {
-				if input.Owner == address {
+				if input.Signature == "COINBASE" {
+					break
+				}
+				if FindTransaction(b, input.TxID).TxOuts[input.Index].Address == address {
 					creatorTxs[input.TxID] = true
 				}
 			}
 			for index, output := range tx.TxOuts {
-				if output.Owner == address {
+				if output.Address == address {
 					if _, spent := creatorTxs[tx.ID]; !spent {
 						uTxOut := &UTxOut{tx.ID, index, output.Amount}
 

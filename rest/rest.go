@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ohshyuk5/ByteCoin/wallet"
 	"log"
 	"net/http"
 
@@ -41,6 +42,10 @@ type errorResponse struct {
 type addTxPayload struct {
 	To     string `json:"to"`
 	Amount int    `json:"amount"`
+}
+
+type myWalletResponse struct {
+	Address string `json:"address"`
 }
 
 func documentation(rw http.ResponseWriter, _ *http.Request) {
@@ -149,9 +154,21 @@ func transactions(rw http.ResponseWriter, r *http.Request) {
 
 	err := blockchain.Mempool.AddTx(payload.To, payload.Amount)
 	if err != nil {
-		utils.HandleErr(json.NewEncoder(rw).Encode(errorResponse{"not enough funds"}))
+		rw.WriteHeader(http.StatusBadRequest)
+		utils.HandleErr(json.NewEncoder(rw).Encode(errorResponse{err.Error()}))
+		return
 	}
 	rw.WriteHeader(http.StatusCreated)
+}
+
+func myWallet(rw http.ResponseWriter, _ *http.Request) {
+	address := wallet.Wallet().Address
+	err := json.NewEncoder(rw).Encode(
+		myWalletResponse{
+			address,
+		},
+	)
+	utils.HandleErr(err)
 }
 
 func Start(aPort int) {
@@ -168,6 +185,7 @@ func Start(aPort int) {
 	router.HandleFunc("/balance/{address}", balance).Methods("GET")
 	router.HandleFunc("/mempool", mempool).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
+	router.HandleFunc("/wallet", myWallet).Methods("Get")
 
 	fmt.Printf("Listening on %s%s\n", baseURL, port)
 	log.Fatal(http.ListenAndServe(port, router))
